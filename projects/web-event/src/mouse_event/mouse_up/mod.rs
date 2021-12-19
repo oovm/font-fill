@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, EventTarget, MouseEvent};
 
@@ -5,19 +6,25 @@ use web_sys::{Event, EventTarget, MouseEvent};
 /// - Cancelable: Yes
 /// - Event type: MouseEvent
 /// - Supported HTML tags: All HTML elements, EXCEPT: <base>, <bdo>, <br>, <head>, <html>, <iframe>, <meta>, <param>, <script>, <style>, and <title>.
-#[derive(Debug)]
-pub struct OnDoubleClick {
+#[derive(Clone)]
+pub struct OnMouseUp {
     inner: MouseEvent,
 }
 
-impl From<Event> for OnDoubleClick {
+impl Debug for OnMouseUp {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("OnMouseUp")
+    }
+}
+
+impl From<Event> for OnMouseUp {
     fn from(e: Event) -> Self {
         let event: MouseEvent = e.unchecked_into();
         Self { inner: event }
     }
 }
 
-impl OnDoubleClick {
+impl OnMouseUp {
     /// Getter for the `screenX` field of this object.
     ///
     /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenX)

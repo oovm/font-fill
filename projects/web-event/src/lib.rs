@@ -1,5 +1,5 @@
+mod mouse_event;
 mod click;
-mod double_click;
 
 pub use click::OnClick;
-pub use double_click::OnDoubleClick;
+pub use mouse_event::{OnDoubleClick, OnMouseUp, OnMouseDown};

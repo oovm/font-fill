@@ -31,6 +31,16 @@ fn app() -> View<G> {
         log::info!("on_db_click {:#?}", event);
     });
 
+    let onmouseup = cloned!(() => move |e:Event| {
+        let event = OnDoubleClick::from(e);
+        log::info!("onmouseup {:#?}", event);
+    });
+
+    let onmousedown = cloned!(() => move |e:Event| {
+        let event = OnDoubleClick::from(e);
+        log::info!("onmousedown {:#?}", event);
+    });
+
     view! {
         h1(
             on:pause = on_pause,
@@ -38,6 +48,8 @@ fn app() -> View<G> {
             on:blur = on_blur,
             on:click = on_click,
             on:dblclick = on_db_click,
+            on:mouseup=onmouseup,
+            on:mousedown=onmousedown,
         ) {
             "Hello "
             (if *c.get() {

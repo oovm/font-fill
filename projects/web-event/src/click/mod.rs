@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use js_sys::Array;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, PointerEvent};
@@ -7,9 +8,15 @@ use web_sys::{Event, PointerEvent};
 /// - Event type: MouseEvent
 /// - Supported HTML tags: All HTML elements, EXCEPT: `<base>`, `<bdo>`, `<br>`, `<head>`, `<html>`,
 ///   `<iframe>`, `<meta>`, `<param>`, `<script>`, `<style>`, `<title>`
-#[derive(Debug)]
+#[derive(Clone)]
 pub struct OnClick {
     inner: PointerEvent,
+}
+
+impl Debug for OnClick {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("OnClickEvent")
+    }
 }
 
 impl From<Event> for OnClick {
