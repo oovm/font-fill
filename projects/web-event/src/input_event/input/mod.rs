@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Formatter};
 use js_sys::Array;
+use std::fmt::{Debug, Formatter};
 use wasm_bindgen::JsCast;
 use web_sys::{DataTransfer, Event, EventTarget, InputEvent, Node, Window};
 
@@ -137,82 +137,114 @@ impl OnInput {
 
 /// methods inherit form [`Event`]
 impl OnInput {
-    ///Getter for the `type` field of this object.
+    /// Getter for the `type` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/type)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/type)
     #[inline]
-    pub fn r#type(&self) -> String{self.inner._type()}
-    ///Getter for the `target` field of this object.
+    pub fn r#type(&self) -> String {
+        self.inner.type_()
+    }
+    /// Getter for the `target` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/target)
-    pub fn target(&self) -> Option<EventTarget>{self.inner.target()}
-    ///Getter for the `currentTarget` field of this object.
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/target)
+    pub fn target(&self) -> Option<EventTarget> {
+        self.inner.target()
+    }
+    /// Getter for the `currentTarget` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
-    pub fn current_target(&self) -> Option<EventTarget>{self.inner.current_target()}
-    ///Getter for the `eventPhase` field of this object.
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
+    pub fn current_target(&self) -> Option<EventTarget> {
+        self.inner.current_target()
+    }
+    /// Getter for the `eventPhase` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/eventPhase)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/eventPhase)
     #[inline]
-    pub fn event_phase(&self) -> u16{self.inner.event_phase()}
-    ///Getter for the `bubbles` field of this object.
+    pub fn event_phase(&self) -> u16 {
+        self.inner.event_phase()
+    }
+    /// Getter for the `bubbles` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles)
     #[inline]
-    pub fn bubbles(&self) -> bool{self.inner.bubbles()}
-    ///Getter for the `cancelable` field of this object.
+    pub fn bubbles(&self) -> bool {
+        self.inner.bubbles()
+    }
+    /// Getter for the `cancelable` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/cancelable)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/cancelable)
     #[inline]
-    pub fn cancelable(&self) -> bool{self.inner.cancelable()}
-    ///Getter for the `defaultPrevented` field of this object.
+    pub fn cancelable(&self) -> bool {
+        self.inner.cancelable()
+    }
+    /// Getter for the `defaultPrevented` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/defaultPrevented)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/defaultPrevented)
     #[inline]
-    pub fn default_prevented(&self) -> bool{self.inner.default_prevented()}
-    ///Getter for the `composed` field of this object.
+    pub fn default_prevented(&self) -> bool {
+        self.inner.default_prevented()
+    }
+    /// Getter for the `composed` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/composed)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/composed)
     #[inline]
-    pub fn composed(&self) -> bool{self.inner.composed()}
-    ///Getter for the `isTrusted` field of this object.
+    pub fn composed(&self) -> bool {
+        self.inner.composed()
+    }
+    /// Getter for the `isTrusted` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/isTrusted)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/isTrusted)
     #[inline]
-    pub fn is_trusted(&self) -> bool{self.inner.is_trusted()}
-    ///Getter for the `timeStamp` field of this object.
+    pub fn is_trusted(&self) -> bool {
+        self.inner.is_trusted()
+    }
+    /// Getter for the `timeStamp` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/timeStamp)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/timeStamp)
     #[inline]
-    pub fn time_stamp(&self) -> f64{self.inner.time_stamp()}
-    ///Getter for the `cancelBubble` field of this object.
+    pub fn time_stamp(&self) -> f64 {
+        self.inner.time_stamp()
+    }
+    /// Getter for the `cancelBubble` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/cancelBubble)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/cancelBubble)
     #[inline]
-    pub fn cancel_bubble(&self) -> bool{self.inner.cancel_bubble()}
-    ///Setter for the `cancelBubble` field of this object.
+    pub fn cancel_bubble(&self) -> bool {
+        self.inner.cancel_bubble()
+    }
+    /// Setter for the `cancelBubble` field of this object.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/cancelBubble)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/cancelBubble)
     #[inline]
-    pub fn set_cancel_bubble(&self, value: bool){self.inner.set_cancel_bubble(value)}
-    ///The `composedPath()` method.
+    pub fn set_cancel_bubble(&self, value: bool) {
+        self.inner.set_cancel_bubble(value)
+    }
+    /// The `composedPath()` method.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/composedPath)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/composedPath)
     #[inline]
-    pub fn composed_path(&self) -> Array{self.inner.composed_path()}
-    ///The `preventDefault()` method.
+    pub fn composed_path(&self) -> Array {
+        self.inner.composed_path()
+    }
+    /// The `preventDefault()` method.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault)
     #[inline]
-    pub fn prevent_default(&self){self.inner.prevent_default()}
-    ///The `stopImmediatePropagation()` method.
+    pub fn prevent_default(&self) {
+        self.inner.prevent_default()
+    }
+    /// The `stopImmediatePropagation()` method.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/stopImmediatePropagation)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/stopImmediatePropagation)
     #[inline]
-    pub fn stop_immediate_propagation(&self){self.inner.stop_immediate_propagation()}
-    ///The `stopPropagation()` method.
+    pub fn stop_immediate_propagation(&self) {
+        self.inner.stop_immediate_propagation()
+    }
+    /// The `stopPropagation()` method.
     ///
-    ///[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/stopPropagation)
+    /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Event/stopPropagation)
     #[inline]
-    pub fn stop_propagation(&self){self.inner.stop_propagation()}
+    pub fn stop_propagation(&self) {
+        self.inner.stop_propagation()
+    }
 }

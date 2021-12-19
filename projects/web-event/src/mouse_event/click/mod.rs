@@ -5,7 +5,7 @@ use web_sys::{Event, PointerEvent};
 
 /// - Bubbles: Yes
 /// - Cancelable: Yes
-/// - Event type: MouseEvent
+/// - Event type: [`Event`] :> [`UiEvent`] :> [`MouseEvent`] :> [`PointerEvent`]
 /// - Supported HTML tags: All HTML elements, EXCEPT: `<base>`, `<bdo>`, `<br>`, `<head>`, `<html>`,
 ///   `<iframe>`, `<meta>`, `<param>`, `<script>`, `<style>`, `<title>`
 #[derive(Clone)]
@@ -25,6 +25,7 @@ impl From<Event> for OnClick {
     }
 }
 
+/// methods inherit from [`PointerEvent`]
 impl OnClick {
     /// Getter for the `pointerId` field of this object.
     ///

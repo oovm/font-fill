@@ -1,7 +1,7 @@
 [package]
 name = "web-event"
 description = "Web event wrappers"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Aster <192608617@qq.com>"]
 
 keywords = ["wasm"]
@@ -15,7 +15,14 @@ edition = "2021"
 
 [dependencies.web-sys]
 version = "0.3.55"
-features = ["InputEvent", "KeyboardEvent", "Location", "Storage", "MouseEvent", "PointerEvent", "EventTarget","DataTransfer"]
+features = [
+    "Node", "Window",
+    "InputEvent", "KeyboardEvent",
+    "Location", "Storage",
+    "MouseEvent", "PointerEvent",
+    "EventTarget",
+    "DataTransfer"
+]
 
 [dependencies.wasm-bindgen]
 version = "0.2.78"

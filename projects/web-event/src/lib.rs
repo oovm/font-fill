@@ -1,7 +1,6 @@
-mod click;
 mod input_event;
 mod mouse_event;
+pub(crate) mod wrapper;
 
-pub use click::OnClick;
 pub use input_event::OnInput;
-pub use mouse_event::{OnDoubleClick, OnMouseDown, OnMouseUp};
+pub use mouse_event::{OnClick, OnDoubleClick, OnMouseDown, OnMouseUp};
