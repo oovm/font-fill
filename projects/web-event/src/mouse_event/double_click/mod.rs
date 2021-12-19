@@ -2,10 +2,12 @@ use std::fmt::{Debug, Formatter};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, EventTarget, MouseEvent};
 
+/// The event occurs when the user double-clicks on an element
 /// - Bubbles: Yes
 /// - Cancelable: Yes
-/// - Event type: MouseEvent
-/// - Supported HTML tags: All HTML elements, EXCEPT: <base>, <bdo>, <br>, <head>, <html>, <iframe>, <meta>, <param>, <script>, <style>, and <title>.
+/// - Event type: [`MouseEvent`]
+/// - Supported HTML tags: All HTML elements, EXCEPT: `<base>`, `<bdo>`, `<br>`, `<head>`, `<html>`,
+///   `<iframe>`, `<meta>`, `<param>`, `<script>`, `<style>`, and `<title>`.
 #[derive(Clone)]
 pub struct OnDoubleClick {
     inner: MouseEvent,

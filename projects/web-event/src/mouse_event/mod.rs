@@ -1,7 +1,5 @@
 mod double_click;
-mod mouse_up;
 mod mouse_down;
+mod mouse_up;
 
-pub use self::double_click::OnDoubleClick;
-pub use self::mouse_down::OnMouseDown;
-pub use self::mouse_up::OnMouseUp;
+pub use self::{double_click::OnDoubleClick, mouse_down::OnMouseDown, mouse_up::OnMouseUp};

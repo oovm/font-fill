@@ -1,5 +1,5 @@
 use sycamore::{prelude::*, rt::Event};
-use web_event::{OnClick, OnDoubleClick};
+use web_event::{OnClick, OnDoubleClick, OnMouseDown, OnMouseUp};
 use web_sys::HtmlElement;
 
 #[component(App < G >)]
@@ -32,12 +32,12 @@ fn app() -> View<G> {
     });
 
     let onmouseup = cloned!(() => move |e:Event| {
-        let event = OnDoubleClick::from(e);
+        let event = OnMouseUp::from(e);
         log::info!("onmouseup {:#?}", event);
     });
 
     let onmousedown = cloned!(() => move |e:Event| {
-        let event = OnDoubleClick::from(e);
+        let event = OnMouseDown::from(e);
         log::info!("onmousedown {:#?}", event);
     });
 

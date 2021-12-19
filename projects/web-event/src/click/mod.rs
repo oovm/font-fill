@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Formatter};
 use js_sys::Array;
+use std::fmt::{Debug, Formatter};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, PointerEvent};
 

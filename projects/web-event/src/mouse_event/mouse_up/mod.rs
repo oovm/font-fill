@@ -5,7 +5,8 @@ use web_sys::{Event, EventTarget, MouseEvent};
 /// - Bubbles: Yes
 /// - Cancelable: Yes
 /// - Event type: MouseEvent
-/// - Supported HTML tags: All HTML elements, EXCEPT: <base>, <bdo>, <br>, <head>, <html>, <iframe>, <meta>, <param>, <script>, <style>, and <title>.
+/// - Supported HTML tags: All HTML elements, EXCEPT: `<base>`, `<bdo>`, `<br>`, `<head>`, `<html>`,
+///   `<iframe>`, `<meta>`, `<param>`, `<script>`, `<style>`, and `<title>`.
 #[derive(Clone)]
 pub struct OnMouseUp {
     inner: MouseEvent,
