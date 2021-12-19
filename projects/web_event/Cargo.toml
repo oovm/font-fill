@@ -1,0 +1,26 @@
+[package]
+name = "web-event"
+description = "Web event wrappers"
+version = "0.0.1"
+authors = ["Aster <192608617@qq.com>"]
+
+keywords = ["wasm"]
+categories = ["wasm", "web-programming"]
+homepage = "https://github.com/oovm/web-event"
+repository = "https://github.com/oovm/web-event"
+readme = "../../Readme.md"
+
+license = "MPL2.0"
+edition = "2018"
+
+[dependencies.web-sys]
+version = "0.3.55"
+features = ["InputEvent", "KeyboardEvent", "Location", "Storage", "MouseEvent", "PointerEvent"]
+
+[dependencies.wasm-bindgen]
+version = "0.2.78"
+features = []
+
+[dependencies.js-sys]
+version = "0.3.55"
+features = []
