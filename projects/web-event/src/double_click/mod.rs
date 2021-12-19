@@ -1,7 +1,10 @@
-use web_sys::{Event, EventTarget, MouseEvent};
 use wasm_bindgen::JsCast;
+use web_sys::{Event, EventTarget, MouseEvent};
 
-/// on:dblclick
+/// - Bubbles: Yes
+/// - Cancelable: Yes
+/// - Event type: MouseEvent
+/// - Supported HTML tags: All HTML elements, EXCEPT: <base>, <bdo>, <br>, <head>, <html>, <iframe>, <meta>, <param>, <script>, <style>, and <title>.
 #[derive(Debug)]
 pub struct OnDoubleClick {
     inner: MouseEvent,
@@ -96,7 +99,6 @@ impl OnDoubleClick {
     /// Getter for the `altKey` field of this object.
     ///
     /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/altKey)
-
     pub fn alt_key(&self) -> bool {
         self.inner.alt_key()
     }

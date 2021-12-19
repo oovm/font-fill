@@ -1,5 +1,5 @@
-mod double_click;
 mod click;
+mod double_click;
 
-pub use double_click::OnDoubleClick;
 pub use click::OnClick;
+pub use double_click::OnDoubleClick;
