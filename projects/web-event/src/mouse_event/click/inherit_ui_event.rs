@@ -1,6 +1,7 @@
+
 use super::*;
 
-impl MouseEventWrapper {
+impl OnClick {
     /// Getter for the `screenX` field of this object.
     ///
     /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenX)

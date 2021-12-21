@@ -1,20 +1,23 @@
-use crate::wrapper::MouseEventWrapper;
+mod inherit_event;
+mod inherit_ui_event;
+mod inherit_mouse_event;
+
 use std::{
     fmt::{Debug, Formatter},
-    ops::Deref,
 };
 use wasm_bindgen::JsCast;
-use web_sys::Event;
+use web_sys::{Event, MouseEvent};
+use web_sys::EventTarget;
+
+
 
 /// - Bubbles: Yes
 /// - Cancelable: Yes
 /// - Event type: MouseEvent
 /// - Supported HTML tags: All HTML elements, EXCEPT: `<base>`, `<bdo>`, `<br>`, `<head>`, `<html>`,
 ///   `<iframe>`, `<meta>`, `<param>`, `<script>`, `<style>`, and `<title>`.
-#[derive(Clone)]
-pub struct OnMouseUp {
-    inner: MouseEventWrapper,
-}
+#[derive(Clone, PartialEq, Eq)]
+pub struct OnMouseUp(MouseEvent);
 
 impl Debug for OnMouseUp {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -24,14 +27,6 @@ impl Debug for OnMouseUp {
 
 impl From<Event> for OnMouseUp {
     fn from(e: Event) -> Self {
-        Self { inner: MouseEventWrapper(e.unchecked_into()) }
-    }
-}
-
-impl Deref for OnMouseUp {
-    type Target = MouseEventWrapper;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
+        Self(e.unchecked_into())
     }
 }
