@@ -1,11 +1,12 @@
-use std::fs::{File, remove_file};
+use std::fs::{File, read, remove_file};
 use std::path::Path;
+
 use fontdue::{Font, FontSettings};
 use image::Rgba;
-
 use syeve::{Compression, Encoder};
 
-use crate::{FontFillCanvas, FontFillError};
+use crate::{FontFillCanvas, FontFillError, FontFillResult};
+use crate::FontFillError::DecodeError;
 
 #[derive()]
 pub struct FontFillVideo {
@@ -20,7 +21,7 @@ pub struct FontFillVideo {
 
 
 impl FontFillVideo {
-    pub fn create<V, F>(video: V, font: F, size: usize) -> Self where V: AsRef<Path>, F: AsRef<Path> {
+    pub fn create<V, F>(video: V, font: F, size: usize) -> FontFillResult<Self> where V: AsRef<Path>, F: AsRef<Path> {
         let path = video.as_ref().to_path_buf();
         let file = if !path.exists() {
             File::create(path).unwrap()
@@ -29,16 +30,15 @@ impl FontFillVideo {
             remove_file(&path).unwrap();
             File::create(path).unwrap()
         };
-        let font = Font::from_bytes(std::fs::read(font.as_ref()).unwrap(), FontSettings::default()).unwrap();
-        Self {
+        Ok(Self {
             encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: FontFillCanvas::new(size),
             file,
-            font,
+            font: load_font(font.as_ref())?,
             fill_rate: vec![],
             decay_rate: 0.7,
             decay_min: 0.1,
-        }
+        })
     }
     pub fn encode_frame(&mut self, c: char, color: Rgba<f32>) {
         self.canvas.decay(self.decay_rate, self.decay_min);
@@ -48,9 +48,26 @@ impl FontFillVideo {
     }
 }
 
-impl FontFillVideo {
+impl FontFillVideo {}
 
-}
-pub fn get_font(path: &Path) -> Result<Font, FontFillError> {
-    &self.font
+fn load_font(path: &Path) -> FontFillResult<Font> {
+    let bytes = match read(path) {
+        Ok(e) => {
+            e
+        }
+        Err(e) => {
+            FontFillError::FileError {
+                path: path.to_string(),
+                message: e.to_string(),
+            }
+        }
+    };
+    match Font::from_bytes(bytes, FontSettings::default()) {
+        Ok(s) => { Ok(s) }
+        Err(e) => {
+            DecodeError {
+                message: e.to_string(),
+            }
+        }
+    }
 }

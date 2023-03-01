@@ -2,7 +2,7 @@ use fontdue::{Font, FontSettings};
 use image::{Rgba};
 
 pub use crate::build_video::FontFillVideo;
-pub use crate::errors::FontFillError;
+pub use crate::errors::{FontFillError, FontFillResult};
 pub use crate::build_image::FontFillCanvas;
 
 mod build_video;

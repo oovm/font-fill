@@ -1,9 +1,15 @@
 
 
-pub type FontFillResult<T> = std::result::Result<T, FontFillError>;
+pub type FontFillResult<T> = Result<T, FontFillError>;
 
+#[derive(Debug)]
 pub enum FontFillError {
-    FileNotFound {
+    FileError {
         path: String,
+        message: String,
     },
+    DecodeError {
+        message: String,
+    }
 }
+
