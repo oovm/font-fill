@@ -1,10 +1,11 @@
 use std::fs::{File, remove_file};
 use std::path::Path;
-use fontdue::Font;
+use fontdue::{Font, FontSettings};
+use image::Rgba;
 
 use syeve::{Compression, Encoder};
 
-use crate::FontFillCanvas;
+use crate::{FontFillCanvas, FontFillError};
 
 #[derive()]
 pub struct FontFillVideo {
@@ -48,7 +49,8 @@ impl FontFillVideo {
 }
 
 impl FontFillVideo {
-    pub fn get_font(&self) -> &Font {
-        &self.font
-    }
+
+}
+pub fn get_font(path: &Path) -> Result<Font, FontFillError> {
+    &self.font
 }
