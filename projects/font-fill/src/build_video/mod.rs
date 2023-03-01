@@ -1,8 +1,7 @@
 use std::{
-    fs::{File, read, remove_file},
+    fs::{create_dir_all, read, remove_file, File},
     path::Path,
 };
-use std::fs::create_dir_all;
 
 use fontdue::{Font, FontSettings};
 use image::Rgba;
@@ -27,11 +26,10 @@ impl FontFillVideo {
         V: AsRef<Path>,
         F: AsRef<Path>,
     {
-
         Ok(Self {
             encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: FontFillCanvas::new(size),
-            file,
+            file: load_video(video.as_ref())?,
             font: load_font(font.as_ref())?,
             fill_rate: vec![],
             decay_rate: 0.7,
@@ -49,24 +47,27 @@ impl FontFillVideo {
 impl FontFillVideo {}
 
 fn load_font(path: &Path) -> FontFillResult<Font> {
-    let bytes = read(path)?;
-    match Font::from_bytes(bytes, FontSettings::default()) {
+    try_load_font(path).map_err(|e| e.with_path(path))
+}
+
+fn try_load_font(path: &Path) -> FontFillResult<Font> {
+    match Font::from_bytes(read(path)?, FontSettings::default()) {
         Ok(s) => Ok(s),
         Err(e) => Err(FontFillError::DecodeError { message: e.to_string() }),
     }
 }
 
 fn load_video(path: &Path) -> FontFillResult<File> {
-    if path.exists() {
-        if let Err(e) = remove_file(&path) {
-            Err(FontFillError::FileError {
-                path: path.display().to_string(),
-                message: e.to_string(),
-            })?
-        }
-    }
-    let parent = path.parent().unwrap();
+    try_load_video(path).map_err(|e| e.with_path(path))
+}
 
-    create_dir_all(path.parent().unwrap()).unwrap(
-    File::create(path).unwrap()
+fn try_load_video(path: &Path) -> FontFillResult<File> {
+    if path.exists() {
+        remove_file(&path)?;
+    }
+    match path.parent() {
+        Some(s) => create_dir_all(s)?,
+        None => Err(FontFillError::file_error("Path has no parent"))?,
+    }
+    Ok(File::create(path)?)
 }

@@ -12,10 +12,10 @@ license = "MPL-2.0"
 edition = "2021"
 
 [dependencies]
-font-kit = "0.11.0"
-pathfinder_geometry = "0.5.1"
+#font-kit = "0.11.0"
+#pathfinder_geometry = "0.5.1"
 fontdue = "0.7.2"
 image = "0.24.5"
 #video-rs = "0.2.2"
-syeve = "0.1.0"
 url = "2.3.1"
+rav1e = "0.6.3"

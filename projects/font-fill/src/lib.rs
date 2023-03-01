@@ -1,3 +1,5 @@
+#![feature(once_cell)]
+
 use fontdue::{Font, FontSettings};
 use image::Rgba;
 
@@ -30,7 +32,7 @@ fn test() {
 #[test]
 fn main() {
     let font = r"F:\project-a\client\ProjectA\Assets\Art\Fonts\SourceHanSansSC-Regular.otf";
-    let mut file = FontFillVideo::create(font, "test.mp4", 144).unwrap();
+    let mut file = FontFillVideo::create("test.mp4", font, 144).unwrap();
     file.encode_frame('生', Rgba([1.0, 0.0, 0.0, 1.0]));
     file.encode_frame('僻', Rgba([1.0, 0.0, 0.0, 1.0]));
     file.encode_frame('字', Rgba([1.0, 0.0, 0.0, 1.0]));
