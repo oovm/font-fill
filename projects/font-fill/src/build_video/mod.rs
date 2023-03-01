@@ -1,19 +1,20 @@
 use std::{
-    fs::{create_dir_all, read, remove_file, File},
-    path::Path,
+    fs::{create_dir_all, read, File},
+    path::{Path, PathBuf},
 };
 
 use fontdue::{Font, FontSettings};
 use image::Rgba;
-use syeve::{Compression, Encoder};
+use serde::Serialize;
+use serde_derive::{Deserialize, Serialize};
+use serde_json::Serializer;
 
 use crate::{FontFillCanvas, FontFillError, FontFillResult};
 
 #[derive()]
 pub struct FontFillVideo {
-    encode: Encoder,
     canvas: FontFillCanvas,
-    file: File,
+    directory: PathBuf,
     font: Font,
     fill_rate: Vec<f32>,
     decay_rate: f32,
@@ -21,27 +22,47 @@ pub struct FontFillVideo {
 }
 
 impl FontFillVideo {
-    pub fn create<V, F>(video: V, font: F, size: usize) -> FontFillResult<Self>
+    pub fn create<V, F>(video_directory: V, font: F, size: usize) -> FontFillResult<Self>
     where
         V: AsRef<Path>,
         F: AsRef<Path>,
     {
         Ok(Self {
-            encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
+            // encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: FontFillCanvas::new(size),
-            file: load_video(video.as_ref())?,
+            directory: load_video(video_directory.as_ref())?,
             font: load_font(font.as_ref())?,
             fill_rate: vec![],
             decay_rate: 0.7,
             decay_min: 0.1,
         })
     }
-    pub fn encode_frame(&mut self, c: char, color: Rgba<f32>) {
+    pub fn encode_frame(&mut self, c: char, color: Rgba<f32>) -> f32 {
         self.canvas.decay(self.decay_rate, self.decay_min);
         self.canvas.draw(c, &self.font, color);
-        self.fill_rate.push(1.0 - self.canvas.transparent_area());
-        self.encode.encode(&mut self.canvas.as_buffer(), &mut self.file).unwrap();
+        let fill_rate = 1.0 - self.canvas.transparent_area();
+        self.fill_rate.push(fill_rate);
+        let image = self.directory.join(format!("step_{}_{}.png", self.fill_rate.len(), c));
+        if let Err(e) = self.canvas.save(&image) {
+            eprintln!("{:?}", e)
+        }
+        fill_rate
     }
+    pub fn report_json(&self) -> FontFillResult<()> {
+        let report = FontFillVideoReport { fill_rate: self.fill_rate.clone(), decay_rate: self.decay_rate, decay_min: self.decay_min };
+        let file = self.directory.join("report.json");
+        let file = File::create(file)?;
+        let mut ser = Serializer::pretty(file);
+        report.serialize(&mut ser)?;
+        Ok(())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FontFillVideoReport {
+    fill_rate: Vec<f32>,
+    decay_rate: f32,
+    decay_min: f32,
 }
 
 impl FontFillVideo {}
@@ -57,17 +78,14 @@ fn try_load_font(path: &Path) -> FontFillResult<Font> {
     }
 }
 
-fn load_video(path: &Path) -> FontFillResult<File> {
+fn load_video(path: &Path) -> FontFillResult<PathBuf> {
     try_load_video(path).map_err(|e| e.with_path(path))
 }
 
-fn try_load_video(path: &Path) -> FontFillResult<File> {
-    if path.exists() {
-        remove_file(&path)?;
-    }
-    match path.parent() {
-        Some(s) => create_dir_all(s)?,
-        None => Err(FontFillError::file_error("Path has no parent"))?,
-    }
-    Ok(File::create(path)?)
+fn try_load_video(path: &Path) -> FontFillResult<PathBuf> {
+    // if path.exists() {
+    //     remove_file(&path)?;
+    // }
+    create_dir_all(path)?;
+    Ok(path.canonicalize()?)
 }

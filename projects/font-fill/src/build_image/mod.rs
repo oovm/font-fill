@@ -1,5 +1,9 @@
+use std::{fs::remove_file, path::Path};
+
 use fontdue::Font;
 use image::{ImageBuffer, Rgba, RgbaImage};
+
+use crate::FontFillResult;
 
 pub const TRANSPARENCY_THRESHOLD: f32 = 0.001;
 
@@ -9,9 +13,7 @@ pub struct FontFillCanvas {
 
 impl FontFillCanvas {
     pub fn new(size: usize) -> Self {
-        Self {
-            canvas: ImageBuffer::new(size as u32, size as u32),
-        }
+        Self { canvas: ImageBuffer::new(size as u32, size as u32) }
     }
     pub fn size(&self) -> usize {
         self.canvas.width() as usize
@@ -28,6 +30,7 @@ impl FontFillCanvas {
 
     pub fn draw(&mut self, c: char, font: &Font, mut color: Rgba<f32>) {
         if font.lookup_glyph_index(c) == 0 {
+            eprintln!("No glyph for {}", c);
             return;
         }
         let (metrics, bitmap) = font.rasterize(c, self.size() as f32);
@@ -47,13 +50,18 @@ impl FontFillCanvas {
         self.canvas.iter().map(|f| (f * 255.0) as u8).collect()
     }
 
-    pub fn save(&self, path: &str) {
-        let mut buffer = RgbaImage::new(self.canvas.width(), self.canvas.height());
-        for (x, y, pixel) in self.canvas.enumerate_pixels() {
-            let alpha = (pixel[3] * 255.0) as u8;
-            buffer.put_pixel(x, y, Rgba([255, 255, 255, alpha]));
-        }
-        buffer.save(path).unwrap();
+    pub fn save(&self, path: &Path) -> FontFillResult<()> {
+        let out: FontFillResult<()> = try {
+            if path.exists() {
+                remove_file(path)?
+            }
+            let mut buffer = RgbaImage::new(self.canvas.width(), self.canvas.height());
+            for (x, y, pixel) in self.canvas.enumerate_pixels() {
+                buffer.put_pixel(x, y, Rgba(pixel.0.map(|v| (v * 255.0) as u8)));
+            }
+            buffer.save(path)?
+        };
+        out.map_err(|e| e.with_path(path))
     }
     pub fn transparent_area(&self) -> f32 {
         let mut count = 0;
