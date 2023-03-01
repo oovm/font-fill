@@ -1,12 +1,14 @@
-use std::fs::{File, read, remove_file};
-use std::path::Path;
+use std::{
+    fs::{File, read, remove_file},
+    path::Path,
+};
+use std::fs::create_dir_all;
 
 use fontdue::{Font, FontSettings};
 use image::Rgba;
 use syeve::{Compression, Encoder};
 
 use crate::{FontFillCanvas, FontFillError, FontFillResult};
-use crate::FontFillError::DecodeError;
 
 #[derive()]
 pub struct FontFillVideo {
@@ -19,17 +21,13 @@ pub struct FontFillVideo {
     decay_min: f32,
 }
 
-
 impl FontFillVideo {
-    pub fn create<V, F>(video: V, font: F, size: usize) -> FontFillResult<Self> where V: AsRef<Path>, F: AsRef<Path> {
-        let path = video.as_ref().to_path_buf();
-        let file = if !path.exists() {
-            File::create(path).unwrap()
-        } else {
-            // delete old file
-            remove_file(&path).unwrap();
-            File::create(path).unwrap()
-        };
+    pub fn create<V, F>(video: V, font: F, size: usize) -> FontFillResult<Self>
+    where
+        V: AsRef<Path>,
+        F: AsRef<Path>,
+    {
+
         Ok(Self {
             encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: FontFillCanvas::new(size),
@@ -51,23 +49,24 @@ impl FontFillVideo {
 impl FontFillVideo {}
 
 fn load_font(path: &Path) -> FontFillResult<Font> {
-    let bytes = match read(path) {
-        Ok(e) => {
-            e
-        }
-        Err(e) => {
-            FontFillError::FileError {
-                path: path.to_string(),
-                message: e.to_string(),
-            }
-        }
-    };
+    let bytes = read(path)?;
     match Font::from_bytes(bytes, FontSettings::default()) {
-        Ok(s) => { Ok(s) }
-        Err(e) => {
-            DecodeError {
+        Ok(s) => Ok(s),
+        Err(e) => Err(FontFillError::DecodeError { message: e.to_string() }),
+    }
+}
+
+fn load_video(path: &Path) -> FontFillResult<File> {
+    if path.exists() {
+        if let Err(e) = remove_file(&path) {
+            Err(FontFillError::FileError {
+                path: path.display().to_string(),
                 message: e.to_string(),
-            }
+            })?
         }
     }
+    let parent = path.parent().unwrap();
+
+    create_dir_all(path.parent().unwrap()).unwrap(
+    File::create(path).unwrap()
 }
