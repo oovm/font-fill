@@ -1,7 +1,7 @@
 [workspace]
 members = ["projects/*"]
 default-members = [
-    "projects/web-event",
+    "projects/fill-fonts",
     "projects/sycamore-event",
 ]
 exclude = [
