@@ -13,12 +13,14 @@ use serde_json::Serializer;
 
 use crate::{DecayCanvas, FontFillError, FontFillResult};
 
+mod builder;
+
 #[derive()]
 pub struct FontFillVideo {
     canvas: DecayCanvas,
     directory: PathBuf,
     video: File,
-    encoder: Context<u8>,
+    encoder: EncoderConfig,
     font: Font,
     fill_rate: Vec<f32>,
     decay_rate: f32,
@@ -32,12 +34,16 @@ impl FontFillVideo {
         F: AsRef<Path>,
     {
         let (video, directory) = create_video(video.as_ref())?;
+        let mut encode = EncoderConfig::default();
+        encode.width = size;
+        encode.height = size;
+        encode.time_base = Rational { num: 1, den: 30 };
         Ok(Self {
             // encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: DecayCanvas::new(size),
             directory,
             video,
-            encoder: Config::default().new_context()?,
+            encoder: encode,
             font: load_font(font.as_ref())?,
             fill_rate: vec![],
             decay_rate: 0.7,
@@ -49,13 +55,15 @@ impl FontFillVideo {
         self.canvas.draw(c, &self.font, color);
         let fill_rate = 1.0 - self.canvas.transparent_area();
         self.fill_rate.push(fill_rate);
-
-        let frame = self.encoder.new_frame();
-        self.encoder.send_frame(frame)?;
-        self.encoder.flush();
+        let mut context: Context<u8> = Config::default().with_encoder_config(self.encoder.clone()).new_context()?;
+        let mut frame = context.new_frame();
+        context.send_frame(frame.clone())?;
+        context.flush();
         loop {
-            match self.encoder.receive_packet() {
-                Ok(packet) => self.video.write_all(&packet.data)?,
+            match context.receive_packet() {
+                Ok(packet) => {
+                    self.video.write(&packet.data)?;
+                }
                 Err(EncoderStatus::Encoded) => continue,
                 Err(EncoderStatus::LimitReached) => break,
                 Err(err) => Err(err)?,
