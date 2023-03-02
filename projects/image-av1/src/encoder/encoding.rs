@@ -1,19 +1,20 @@
 use std::io::Write;
 
-use image::{DynamicImage, ImageError, RgbaImage};
+use image::{imageops::FilterType, DynamicImage, RgbaImage};
 use rav1e::prelude::*;
 
-use crate::Av1Encoder;
+use crate::{utils::Result, Av1Encoder};
 
 impl Av1Encoder {
-    pub fn resize_image(&mut self, image: DynamicImage) -> Result<RgbaImage, ImageError> {
-        image.to_rgba8().resize_exact(width, height, image::imageops::FilterType::Nearest).into_result()
+    pub fn resize_image(&mut self, image: DynamicImage, filter: FilterType) -> RgbaImage {
+        image.resize_exact(self.encoder.width as u32, self.encoder.height as u32, filter).to_rgba8()
     }
 
-    pub fn write_image(&mut self, image: RgbaImage) -> Result<usize, ImageError> {
-        let mut ctx = self.encode_context()?;
-        let frame = ctx.new_frame();
+    pub fn write_image(&mut self, image: &RgbaImage) -> Result<usize> {
         let mut size = 0;
+        let mut ctx = self.encode_context()?;
+        let mut frame = ctx.new_frame();
+        self.init_frame_3(&image, &mut frame)?;
         ctx.send_frame(frame).unwrap();
         ctx.flush();
         loop {
@@ -29,7 +30,7 @@ impl Av1Encoder {
         }
         Ok(size)
     }
-    pub fn write_image_repeats(&mut self, image: RgbaImage, count: usize) -> Result<usize, ImageError> {
+    pub fn write_image_repeats(&mut self, image: RgbaImage, count: usize) -> Result<usize> {
         let mut ctx = self.encode_context()?;
         let frame = ctx.new_frame();
         let mut size = 0;
@@ -51,7 +52,7 @@ impl Av1Encoder {
         Ok(size)
     }
 
-    fn encode_context(&self) -> Result<Context<u8>, ImageError> {
+    fn encode_context(&self) -> Result<Context<u8>> {
         let config = Config::new().with_encoder_config(self.encoder.clone()).with_rate_control(self.rate_control.clone());
         match config.new_context::<u8>() {
             Ok(o) => Ok(o),
@@ -60,9 +61,11 @@ impl Av1Encoder {
             }
         }
     }
-    fn init_frame_3(width: usize, height: usize, planes: impl IntoIterator<Item = [u8; 3]> + Send, frame: &mut Frame<u8>) -> Result<(), Error> {
+    fn init_frame_3(&self, planes: &RgbaImage, frame: &mut Frame<u8>) -> Result<()> {
+        let width = self.encoder.width;
+        let height = self.encoder.height;
         let mut f = frame.planes.iter_mut();
-        let mut planes = planes.into_iter();
+        let mut planes = planes.pixels();
 
         // it doesn't seem to be necessary to fill padding area
         let mut y = f.next().unwrap().mut_slice(Default::default());
@@ -74,23 +77,22 @@ impl Av1Encoder {
             let u = &mut u[..width];
             let v = &mut v[..width];
             for ((y, u), v) in y.iter_mut().zip(u).zip(v) {
-                let px = planes.next().ok_or(Error::TooFewPixels)?;
-                *y = px[0];
-                *u = px[1];
-                *v = px[2];
+                let px = planes.next().expect("Too few pixels");
+                *y = px.0[0];
+                *u = px.0[1];
+                *v = px.0[2];
             }
         }
         Ok(())
     }
 
-    fn init_frame_1(width: usize, height: usize, planes: impl IntoIterator<Item = u8> + Send, frame: &mut Frame<u8>) -> Result<(), Error> {
+    fn init_frame_1(width: usize, height: usize, planes: &[u8], frame: &mut Frame<u8>) -> Result<()> {
         let mut y = frame.planes[0].mut_slice(Default::default());
         let mut planes = planes.into_iter();
-
         for y in y.rows_iter_mut().take(height) {
             let y = &mut y[..width];
             for y in y.iter_mut() {
-                *y = planes.next().ok_or(Error::TooFewPixels)?;
+                *y = *planes.next().expect("Too few pixels");
             }
         }
         Ok(())

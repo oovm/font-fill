@@ -13,9 +13,9 @@ edition = "2021"
 
 [dependencies]
 image = "0.24.5"
-imageproc = "0.23.0"
+#imageproc = "0.23.0"
 rav1e = { version = "0.6.3" }
-
+yuv = "0.1.5"
 
 [features]
 default = ["rav1e/unstable"]
