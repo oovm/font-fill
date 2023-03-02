@@ -9,11 +9,11 @@ use serde::Serialize;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Serializer;
 
-use crate::{FontFillCanvas, FontFillError, FontFillResult};
+use crate::{DecayCanvas, FontFillError, FontFillResult};
 
 #[derive()]
 pub struct FontFillVideo {
-    canvas: FontFillCanvas,
+    canvas: DecayCanvas,
     directory: PathBuf,
     font: Font,
     fill_rate: Vec<f32>,
@@ -29,12 +29,12 @@ impl FontFillVideo {
     {
         Ok(Self {
             // encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
-            canvas: FontFillCanvas::new(size),
+            canvas: DecayCanvas::new(size),
             directory: load_video(video_directory.as_ref())?,
             font: load_font(font.as_ref())?,
             fill_rate: vec![],
             decay_rate: 0.7,
-            decay_min: 0.1,
+            decay_min: 0.2,
         })
     }
     pub fn encode_frame(&mut self, c: char, color: Rgba<f32>) -> f32 {
@@ -44,7 +44,7 @@ impl FontFillVideo {
         self.fill_rate.push(fill_rate);
         let image = self.directory.join(format!("step_{}_{}.png", self.fill_rate.len(), c));
         if let Err(e) = self.canvas.save(&image) {
-            eprintln!("{:?}", e)
+            log::error!("{:?}", e)
         }
         fill_rate
     }

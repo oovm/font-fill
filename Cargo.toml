@@ -2,7 +2,7 @@
 members = ["projects/*"]
 default-members = [
     "projects/font-fill",
-    "projects/sycamore-event",
+    "projects/font-fill-cli",
 ]
 exclude = [
     "projects/.DS_Store",

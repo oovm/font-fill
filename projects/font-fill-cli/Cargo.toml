@@ -1,0 +1,9 @@
+[package]
+name = "fontill"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+clap = "4.1.8"
+env_logger = "0.10.0"

@@ -7,11 +7,11 @@ use crate::FontFillResult;
 
 pub const TRANSPARENCY_THRESHOLD: f32 = 0.001;
 
-pub struct FontFillCanvas {
+pub struct DecayCanvas {
     canvas: ImageBuffer<Rgba<f32>, Vec<f32>>,
 }
 
-impl FontFillCanvas {
+impl DecayCanvas {
     pub fn new(size: usize) -> Self {
         Self { canvas: ImageBuffer::new(size as u32, size as u32) }
     }
@@ -29,20 +29,28 @@ impl FontFillCanvas {
     }
 
     pub fn draw(&mut self, c: char, font: &Font, mut color: Rgba<f32>) {
-        if font.lookup_glyph_index(c) == 0 {
-            eprintln!("No glyph for {}", c);
-            return;
-        }
-        let (metrics, bitmap) = font.rasterize(c, self.size() as f32);
+        let (metrics, bitmap) = match font.lookup_glyph_index(c) {
+            0 => {
+                log::error!("No glyph for {}", c);
+                return;
+            }
+            code => font.rasterize_indexed(code, self.size() as f32),
+        };
         for x in 0..metrics.width {
             for y in 0..metrics.height {
+                let px = self.size() / 2 - metrics.width as usize / 2 + x as usize;
+                let py = self.size() / 2 - metrics.height as usize / 2 + y as usize;
+                if px >= self.size() || py >= self.size() {
+                    log::error!("({}, {}) out of bounds: ({}, {})", px, py, self.size(), self.size());
+                    continue;
+                }
                 let index = y * metrics.width + x;
                 let alpha = bitmap[index] as f32 / 255.0;
                 if alpha <= TRANSPARENCY_THRESHOLD {
                     continue;
                 }
                 color[3] = alpha;
-                self.canvas.put_pixel(x as u32, y as u32, color);
+                self.canvas.put_pixel(px as u32, py as u32, color);
             }
         }
     }
