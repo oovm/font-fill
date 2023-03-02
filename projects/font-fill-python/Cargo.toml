@@ -1,0 +1,15 @@
+[package]
+name = "font-fill-py"
+publish = false
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "font-fill"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.18.1"
+
+[dependencies.font-fill]
+path = "../font-fill"

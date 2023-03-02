@@ -157,37 +157,44 @@ impl Av1Encoder {
 // U = ((-38 * R -  74 * G + 112 * B + 128) >> 8) + 128
 // V = ((112 * R -  94 * G -  18 * B + 128) >> 8) + 128
 fn rgba8_to_yuv(rgba: &Rgba<u8>) -> [u8; 3] {
-    let r = rgba[0] as i32;
-    let g = rgba[1] as i32;
-    let b = rgba[2] as i32;
-    let a = rgba[3] as u8;
+    let [r, g, b] = alpha_blend_rgba8(rgba);
     let y = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
     let u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
     let v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
-    alpha_blend_yuv([y as u8, u as u8, v as u8], a)
+    [y as u8, u as u8, v as u8]
 }
 
 // Y =  0.299R + 0.587G + 0.114B
 // U = -0.147R - 0.289G + 0.436B
 // V =  0.615R - 0.515G - 0.100B
 fn rgba32_to_yuv(rgba: &Rgba<f32>) -> [u8; 3] {
-    let r = rgba[0];
-    let g = rgba[1];
-    let b = rgba[2];
-    let a = rgba[3] * 255.0;
+    let [r, g, b] = alpha_blend_rgb32(rgba);
     let y = (0.299 * r + 0.587 * g + 0.114 * b) * 255.0;
     let u = (-0.147 * r - 0.289 * g + 0.436 * b) * 255.0 + 128.0;
     let v = (0.615 * r - 0.515 * g - 0.100 * b) * 255.0 + 128.0;
-    alpha_blend_yuv([y as u8, u as u8, v as u8], a as u8)
+    [y as u8, u as u8, v as u8]
 }
 
-fn alpha_blend_yuv(yuv: [u8; 3], alpha: u8) -> [u8; 3] {
-    let y = yuv[0] as i32;
-    let u = yuv[1] as i32;
-    let v = yuv[2] as i32;
-    let a = alpha as i32;
-    let y = (y * a + 128) >> 8;
-    let u = (u * a + 128) >> 8;
-    let v = (v * a + 128) >> 8;
-    [y as u8, u as u8, v as u8]
+#[inline(always)]
+fn alpha_blend_rgb32(rgba: &Rgba<f32>) -> [f32; 3] {
+    let r = rgba[0];
+    let g = rgba[1];
+    let b = rgba[2];
+    let a = rgba[3];
+    let r = r * a;
+    let g = g * a;
+    let b = b * a;
+    [r, g, b]
+}
+
+#[inline(always)]
+fn alpha_blend_rgba8(rgba: &Rgba<u8>) -> [i32; 3] {
+    let r = rgba[0] as i32;
+    let g = rgba[1] as i32;
+    let b = rgba[2] as i32;
+    let a = rgba[3] as i32;
+    let r = (r * a + 128) >> 8;
+    let g = (g * a + 128) >> 8;
+    let b = (b * a + 128) >> 8;
+    [r, g, b]
 }
