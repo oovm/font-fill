@@ -1,1 +1,4 @@
-pub struct Av1Encoder {}
+mod encoder;
+
+pub use crate::encoder::Av1Encoder;
+pub(crate) mod utils;
