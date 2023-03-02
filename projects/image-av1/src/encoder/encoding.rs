@@ -3,7 +3,7 @@ use std::io::Write;
 use image::{
     error::{ParameterError, ParameterErrorKind},
     imageops::FilterType,
-    DynamicImage, GenericImage, ImageError, Rgba, Rgba32FImage, RgbaImage,
+    DynamicImage, ImageError, Rgba, Rgba32FImage, RgbaImage,
 };
 use rav1e::prelude::*;
 
@@ -14,16 +14,12 @@ impl Av1Encoder {
         image.resize_exact(self.config.width as u32, self.config.height as u32, filter).to_rgba8()
     }
 
-    pub fn encode_image<F, I>(&mut self, encoder: F, image: &I) -> Result<usize>
-    where
-        I: GenericImage,
-        F: Fn(&I, &mut Frame<u8>),
-    {
-        self.check_size(image)?;
+    pub fn encode_image(&mut self, image: &RgbaImage) -> Result<usize> {
+        self.check_size(image.width(), image.height())?;
         let mut size = 0;
         let mut ctx = self.encode_context()?;
         let mut frame = ctx.new_frame();
-        encoder(image, &mut frame)?;
+        self.build_rgba8_frame(&image, &mut frame)?;
         ctx.send_frame(frame).unwrap();
         ctx.flush();
         loop {
@@ -39,6 +35,28 @@ impl Av1Encoder {
         }
         Ok(size)
     }
+    pub fn encode_image_high_precision(&mut self, image: &Rgba32FImage) -> Result<usize> {
+        self.check_size(image.width(), image.height())?;
+        let mut size = 0;
+        let mut ctx = self.encode_context()?;
+        let mut frame = ctx.new_frame();
+        self.build_rgba32_frame(&image, &mut frame)?;
+        ctx.send_frame(frame).unwrap();
+        ctx.flush();
+        loop {
+            match ctx.receive_packet() {
+                Ok(packet) => {
+                    size = self.output.write(&packet.data)?;
+                    continue;
+                }
+                Err(EncoderStatus::Encoded) => continue,
+                Err(EncoderStatus::LimitReached) => break,
+                Err(err) => Err(err).unwrap(),
+            }
+        }
+        Ok(size)
+    }
+
     pub fn write_image_repeats(&mut self, image: RgbaImage, count: usize) -> Result<usize> {
         let mut ctx = self.encode_context()?;
         let frame = ctx.new_frame();
@@ -60,14 +78,11 @@ impl Av1Encoder {
         }
         Ok(size)
     }
-    pub fn check_size<I>(&self, image: &I) -> Result<()>
-    where
-        I: GenericImage,
-    {
-        if self.config.width != image.width() as usize {
+    pub fn check_size(&self, width: u32, height: u32) -> Result<()> {
+        if self.config.width != width as usize {
             Err(ImageError::Parameter(ParameterError::from_kind(ParameterErrorKind::DimensionMismatch)))?
         }
-        if self.config.height != image.height() as usize {
+        if self.config.height != height as usize {
             Err(ImageError::Parameter(ParameterError::from_kind(ParameterErrorKind::DimensionMismatch)))?
         }
         Ok(())
@@ -135,17 +150,6 @@ impl Av1Encoder {
         }
         Ok(())
     }
-    fn init_frame_1(width: usize, height: usize, planes: &[u8], frame: &mut Frame<u8>) -> Result<()> {
-        let mut y = frame.planes[0].mut_slice(Default::default());
-        let mut planes = planes.into_iter();
-        for y in y.rows_iter_mut().take(height) {
-            let y = &mut y[..width];
-            for y in y.iter_mut() {
-                *y = *planes.next().expect("Too few pixels");
-            }
-        }
-        Ok(())
-    }
 }
 
 // ## RGB to YUV
@@ -156,18 +160,34 @@ fn rgba8_to_yuv(rgba: &Rgba<u8>) -> [u8; 3] {
     let r = rgba[0] as i32;
     let g = rgba[1] as i32;
     let b = rgba[2] as i32;
+    let a = rgba[3] as u8;
     let y = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
     let u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
     let v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
-    [y as u8, u as u8, v as u8]
+    alpha_blend_yuv([y as u8, u as u8, v as u8], a)
 }
 
+// Y =  0.299R + 0.587G + 0.114B
+// U = -0.147R - 0.289G + 0.436B
+// V =  0.615R - 0.515G - 0.100B
 fn rgba32_to_yuv(rgba: &Rgba<f32>) -> [u8; 3] {
     let r = rgba[0];
     let g = rgba[1];
     let b = rgba[2];
-    let y = (0.299 * r + 0.587 * g + 0.114 * b) as u8;
-    let u = (128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b) as u8;
-    let v = (128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b) as u8;
-    [y, u, v]
+    let a = rgba[3] * 255.0;
+    let y = (0.299 * r + 0.587 * g + 0.114 * b) * 255.0;
+    let u = (-0.147 * r - 0.289 * g + 0.436 * b) * 255.0 + 128.0;
+    let v = (0.615 * r - 0.515 * g - 0.100 * b) * 255.0 + 128.0;
+    alpha_blend_yuv([y as u8, u as u8, v as u8], a as u8)
+}
+
+fn alpha_blend_yuv(yuv: [u8; 3], alpha: u8) -> [u8; 3] {
+    let y = yuv[0] as i32;
+    let u = yuv[1] as i32;
+    let v = yuv[2] as i32;
+    let a = alpha as i32;
+    let y = (y * a + 128) >> 8;
+    let u = (u * a + 128) >> 8;
+    let v = (v * a + 128) >> 8;
+    [y as u8, u as u8, v as u8]
 }

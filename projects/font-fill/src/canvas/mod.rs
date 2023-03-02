@@ -17,7 +17,7 @@ pub trait Canvas {
                 log::info!("Removing existing file {}", path.display());
                 remove_file(path)?
             }
-            let mut buffer = RgbaImage::new(self.size() as u32, self.size() as u32);
+            // let buffer = RgbaImage::new(self.size() as u32, self.size() as u32);
             self.as_png().save(path)?
         };
         out.map_err(|e| e.with_path(path))

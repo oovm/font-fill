@@ -1,16 +1,12 @@
 use std::{
     fmt::{Debug, Formatter},
     path::{Path, PathBuf},
-    sync::LazyLock,
 };
 
 use image::ImageError;
 use rav1e::{EncoderStatus, InvalidConfig};
-use url::Url;
 
 pub type FontFillResult<T> = Result<T, FontFillError>;
-
-pub static EMPTY_URL: LazyLock<Url> = LazyLock::new(|| Url::parse("https://example.com").unwrap());
 
 pub enum FontFillError {
     FileError { path: PathBuf, message: String },

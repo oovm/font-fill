@@ -1,7 +1,7 @@
 use std::{
-    fs::{remove_file, File},
+    fs::{create_dir_all, remove_file, File},
     io::ErrorKind,
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use image::ImageError;
@@ -12,6 +12,7 @@ use crate::utils::io_error;
 mod encoding;
 
 pub struct Av1Encoder {
+    path: PathBuf,
     output: File,
     config: EncoderConfig,
     rate_control: RateControlConfig,
@@ -44,9 +45,22 @@ impl Av1Encoder {
                 io_error(ErrorKind::AlreadyExists, format!("File already exists: {}", path.display()))?;
             }
         }
+        if let Some(s) = path.parent() {
+            create_dir_all(s)?;
+        }
+        let output = File::create(path)?;
         let mut encoder = EncoderConfig::default();
         encoder.chroma_sampling = ChromaSampling::Cs444;
-        Ok(Self { output: File::create(path)?, config: encoder, rate_control: Default::default() })
+        Ok(Self { output, path: path.canonicalize()?, config: encoder, rate_control: Default::default() })
+    }
+    pub fn get_file_path(&self) -> &Path {
+        self.path.as_ref()
+    }
+    pub fn get_directory(&self) -> &Path {
+        match self.path.parent() {
+            None => self.get_file_path(),
+            Some(s) => s,
+        }
     }
     pub fn mut_config(&mut self) -> &mut EncoderConfig {
         &mut self.config

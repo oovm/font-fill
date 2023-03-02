@@ -8,18 +8,18 @@ use crate::FontFillResult;
 pub const TRANSPARENCY_THRESHOLD: f32 = 0.001;
 
 pub struct DecayCanvas {
-    canvas: ImageBuffer<Rgba<f32>, Vec<f32>>,
+    buffer: ImageBuffer<Rgba<f32>, Vec<f32>>,
 }
 
 impl DecayCanvas {
     pub fn new(size: usize) -> Self {
-        Self { canvas: ImageBuffer::new(size as u32, size as u32) }
+        Self { buffer: ImageBuffer::new(size as u32, size as u32) }
     }
     pub fn size(&self) -> usize {
-        self.canvas.width() as usize
+        self.buffer.width() as usize
     }
     pub fn decay(&mut self, decay: f32, min: f32) {
-        for pixel in self.canvas.pixels_mut() {
+        for pixel in self.buffer.pixels_mut() {
             let alpha = pixel[3] * decay;
             if alpha <= min {
                 continue;
@@ -50,12 +50,16 @@ impl DecayCanvas {
                     continue;
                 }
                 color[3] = alpha;
-                self.canvas.put_pixel(px as u32, py as u32, color);
+                self.buffer.put_pixel(px as u32, py as u32, color);
             }
         }
     }
+    pub fn get_image(&self) -> &ImageBuffer<Rgba<f32>, Vec<f32>> {
+        &self.buffer
+    }
+
     pub fn as_buffer(&self) -> Vec<u8> {
-        self.canvas.iter().map(|f| (f * 255.0) as u8).collect()
+        self.buffer.iter().map(|f| (f * 255.0) as u8).collect()
     }
 
     pub fn save(&self, path: &Path) -> FontFillResult<()> {
@@ -63,8 +67,8 @@ impl DecayCanvas {
             if path.exists() {
                 remove_file(path)?
             }
-            let mut buffer = RgbaImage::new(self.canvas.width(), self.canvas.height());
-            for (x, y, pixel) in self.canvas.enumerate_pixels() {
+            let mut buffer = RgbaImage::new(self.buffer.width(), self.buffer.height());
+            for (x, y, pixel) in self.buffer.enumerate_pixels() {
                 buffer.put_pixel(x, y, Rgba(pixel.0.map(|v| (v * 255.0) as u8)));
             }
             buffer.save(path)?
@@ -73,11 +77,11 @@ impl DecayCanvas {
     }
     pub fn transparent_area(&self) -> f32 {
         let mut count = 0;
-        for pixel in self.canvas.pixels() {
+        for pixel in self.buffer.pixels() {
             if pixel[3] <= TRANSPARENCY_THRESHOLD {
                 count += 1;
             }
         }
-        count as f32 / self.canvas.pixels().len() as f32
+        count as f32 / self.buffer.pixels().len() as f32
     }
 }

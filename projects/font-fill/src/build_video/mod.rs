@@ -1,16 +1,15 @@
 use std::{
-    fs::{create_dir_all, read, remove_file, File},
-    io::Write,
-    path::{Path, PathBuf},
+    fs::{read, File},
+    path::Path,
 };
 
 use fontdue::{Font, FontSettings};
-use image::{DynamicImage, Rgba};
-use image_av1::Av1Encoder;
-use rav1e::prelude::*;
+use image::Rgba;
 use serde::Serialize as _;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Serializer;
+
+use image_av1::Av1Encoder;
 
 use crate::{DecayCanvas, FontFillError, FontFillResult};
 
@@ -19,8 +18,6 @@ mod builder;
 #[derive()]
 pub struct FontFillVideo {
     canvas: DecayCanvas,
-    directory: PathBuf,
-    video: File,
     encoder: Av1Encoder,
     font: Font,
     fill_rate: Vec<f32>,
@@ -34,13 +31,10 @@ impl FontFillVideo {
         V: AsRef<Path>,
         F: AsRef<Path>,
     {
-        let (video, directory) = create_video(video.as_ref())?;
-        let mut encode = Av1Encoder::new(video.as_ref())?.with_size(size, size);
+        let encode = Av1Encoder::new(video.as_ref(), true)?.with_size(size, size);
         Ok(Self {
             // encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: DecayCanvas::new(size),
-            directory,
-            video,
             encoder: encode,
             font: load_font(font.as_ref())?,
             fill_rate: vec![],
@@ -53,13 +47,13 @@ impl FontFillVideo {
         self.canvas.draw(c, &self.font, color);
         let fill_rate = 1.0 - self.canvas.transparent_area();
         self.fill_rate.push(fill_rate);
-        self.encoder.encode_image(&DynamicImage::ImageRgb32F(*self.canvas))?;
+        self.encoder.encode_image_high_precision(self.canvas.get_image())?;
         Ok(fill_rate)
     }
 
     pub fn report_json(&self) -> FontFillResult<()> {
         let report = FontFillVideoReport { fill_rate: self.fill_rate.clone(), decay_rate: self.decay_rate, decay_min: self.decay_min };
-        let file = self.directory.join("report.json");
+        let file = self.encoder.get_directory().join("report.json");
         let file = File::create(file)?;
         let mut ser = Serializer::pretty(file);
         report.serialize(&mut ser)?;
@@ -85,23 +79,4 @@ fn try_load_font(path: &Path) -> FontFillResult<Font> {
         Ok(s) => Ok(s),
         Err(e) => Err(FontFillError::DecodeError { message: e.to_string() }),
     }
-}
-
-fn create_video(path: &Path) -> FontFillResult<(File, PathBuf)> {
-    let out: FontFillResult<(File, PathBuf)> = try {
-        if path.exists() {
-            log::info!("Removing existing file {}", path.display());
-            remove_file(&path)?;
-        }
-        let parent = match path.parent() {
-            Some(s) => {
-                create_dir_all(s)?;
-                s.canonicalize()?
-            }
-            None => Err(FontFillError::file_error("Could not get parent directory"))?,
-        };
-
-        (File::create(path)?, parent)
-    };
-    out.map_err(|e| e.with_path(path))
 }
