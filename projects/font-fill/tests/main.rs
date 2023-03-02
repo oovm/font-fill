@@ -11,7 +11,7 @@ pub fn ready() {
 #[test]
 fn main() {
     let font = r"F:\project-a\client\ProjectA\Assets\Art\Fonts\SourceHanSansSC-Regular.otf";
-    let mut file = FontFillVideo::create("../../target/SourceHanSansSC", font, 200).unwrap();
+    let mut file = FontFillVideo::create("../../target/SourceHanSansSC/out.av1", font, 200).unwrap();
     for c in include_str!("长恨歌.txt").chars() {
         if !c.is_alphabetic() {
             continue;

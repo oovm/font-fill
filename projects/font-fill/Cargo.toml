@@ -21,7 +21,7 @@ serde_json = "1.0.93"
 #video-rs = "0.2.2"
 url = "2.3.1"
 log = "0.4.17"
-#rav1e = "0.6.3"
+rav1e = "0.6.3"
 #gstreamer = "0.20.2"
 
 [dev-dependencies]
