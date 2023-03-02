@@ -5,7 +5,7 @@ use std::{
 };
 
 use image::ImageError;
-use rav1e::{config::RateControlConfig, data::Rational, EncoderConfig};
+use rav1e::{color::ChromaSampling, config::RateControlConfig, data::Rational, EncoderConfig};
 
 use crate::utils::io_error;
 
@@ -44,7 +44,9 @@ impl Av1Encoder {
                 io_error(ErrorKind::AlreadyExists, format!("File already exists: {}", path.display()))?;
             }
         }
-        Ok(Self { output: File::create(path)?, encoder: Default::default(), rate_control: Default::default() })
+        let mut encoder = EncoderConfig::default();
+        encoder.chroma_sampling = ChromaSampling::Cs444;
+        Ok(Self { output: File::create(path)?, encoder, rate_control: Default::default() })
     }
     pub fn mut_config(&mut self) -> &mut EncoderConfig {
         &mut self.encoder

@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use image::{imageops::FilterType, DynamicImage, RgbaImage};
+use image::{imageops::FilterType, DynamicImage, Rgba, RgbaImage};
 use rav1e::prelude::*;
 
 use crate::{utils::Result, Av1Encoder};
@@ -53,6 +53,9 @@ impl Av1Encoder {
     }
 
     fn encode_context(&self) -> Result<Context<u8>> {
+        if self.encoder.chroma_sampling != ChromaSampling::Cs444 {
+            panic!("Only 444 chroma sampling is supported")
+        }
         let config = Config::new().with_encoder_config(self.encoder.clone()).with_rate_control(self.rate_control.clone());
         match config.new_context::<u8>() {
             Ok(o) => Ok(o),
@@ -61,11 +64,11 @@ impl Av1Encoder {
             }
         }
     }
-    fn init_frame_3(&self, planes: &RgbaImage, frame: &mut Frame<u8>) -> Result<()> {
+    fn init_frame_3(&self, image: &RgbaImage, frame: &mut Frame<u8>) -> Result<()> {
         let width = self.encoder.width;
         let height = self.encoder.height;
         let mut f = frame.planes.iter_mut();
-        let mut planes = planes.pixels();
+        let mut planes = image.pixels();
 
         // it doesn't seem to be necessary to fill padding area
         let mut y = f.next().unwrap().mut_slice(Default::default());
@@ -73,14 +76,16 @@ impl Av1Encoder {
         let mut v = f.next().unwrap().mut_slice(Default::default());
 
         for ((y, u), v) in y.rows_iter_mut().zip(u.rows_iter_mut()).zip(v.rows_iter_mut()).take(height) {
+            println!("{} {} {}", y.len(), u.len(), v.len());
             let y = &mut y[..width];
             let u = &mut u[..width];
             let v = &mut v[..width];
             for ((y, u), v) in y.iter_mut().zip(u).zip(v) {
                 let px = planes.next().expect("Too few pixels");
-                *y = px.0[0];
-                *u = px.0[1];
-                *v = px.0[2];
+                let px = rgba_to_yuv(px);
+                *y = px[0];
+                *u = px[1];
+                *v = px[2];
             }
         }
         Ok(())
@@ -97,4 +102,18 @@ impl Av1Encoder {
         }
         Ok(())
     }
+}
+
+// ## RGB to YUV
+// Y = (( 66 * R + 129 * G +  25 * B + 128) >> 8) +  16
+// U = ((-38 * R -  74 * G + 112 * B + 128) >> 8) + 128
+// V = ((112 * R -  94 * G -  18 * B + 128) >> 8) + 128
+fn rgba_to_yuv(rgba: &Rgba<u8>) -> [u8; 3] {
+    let r = rgba[0] as i16;
+    let g = rgba[1] as i16;
+    let b = rgba[2] as i16;
+    let y = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
+    let u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
+    let v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
+    [y as u8, u as u8, v as u8]
 }
