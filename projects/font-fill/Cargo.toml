@@ -25,8 +25,8 @@ rav1e = "0.6.3"
 #ffmpeg-next = "5.1.1"
 #gstreamer = "0.20.2"
 
-#[dependencies.av]
-#git = "https://github.com/rust-av/rust-av"
+[dependencies.image-av1]
+path = "../image-av1"
 
 
 [dev-dependencies]

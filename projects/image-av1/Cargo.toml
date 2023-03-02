@@ -1,10 +1,10 @@
 [package]
 name = "image-av1"
 description = "Encode images to av1 video."
-version = "0.1.3"
+version = "0.0.0"
 authors = ["Aster <192608617@qq.com>"]
-keywords = ["font", "render"]
-categories = ["font", "web-programming"]
+keywords = ["encode", "render"]
+categories = ["encode", "encode"]
 homepage = "https://github.com/oovm/web-event"
 repository = "https://github.com/oovm/web-event"
 readme = "Readme.md"

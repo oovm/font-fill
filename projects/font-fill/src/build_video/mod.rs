@@ -5,7 +5,8 @@ use std::{
 };
 
 use fontdue::{Font, FontSettings};
-use image::Rgba;
+use image::{DynamicImage, Rgba};
+use image_av1::Av1Encoder;
 use rav1e::prelude::*;
 use serde::Serialize as _;
 use serde_derive::{Deserialize, Serialize};
@@ -20,7 +21,7 @@ pub struct FontFillVideo {
     canvas: DecayCanvas,
     directory: PathBuf,
     video: File,
-    encoder: EncoderConfig,
+    encoder: Av1Encoder,
     font: Font,
     fill_rate: Vec<f32>,
     decay_rate: f32,
@@ -34,10 +35,7 @@ impl FontFillVideo {
         F: AsRef<Path>,
     {
         let (video, directory) = create_video(video.as_ref())?;
-        let mut encode = EncoderConfig::default();
-        encode.width = size;
-        encode.height = size;
-        encode.time_base = Rational { num: 1, den: 30 };
+        let mut encode = Av1Encoder::new(video.as_ref())?.with_size(size, size);
         Ok(Self {
             // encode: Encoder::new((size, size), 4, Compression::Brotli(4), 30),
             canvas: DecayCanvas::new(size),
@@ -55,20 +53,7 @@ impl FontFillVideo {
         self.canvas.draw(c, &self.font, color);
         let fill_rate = 1.0 - self.canvas.transparent_area();
         self.fill_rate.push(fill_rate);
-        let mut context: Context<u8> = Config::default().with_encoder_config(self.encoder.clone()).new_context()?;
-        let mut frame = context.new_frame();
-        context.send_frame(frame.clone())?;
-        context.flush();
-        loop {
-            match context.receive_packet() {
-                Ok(packet) => {
-                    self.video.write(&packet.data)?;
-                }
-                Err(EncoderStatus::Encoded) => continue,
-                Err(EncoderStatus::LimitReached) => break,
-                Err(err) => Err(err)?,
-            }
-        }
+        self.encoder.encode_image(&DynamicImage::ImageRgb32F(*self.canvas))?;
         Ok(fill_rate)
     }
 
