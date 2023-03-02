@@ -13,7 +13,7 @@ mod encoding;
 
 pub struct Av1Encoder {
     output: File,
-    encoder: EncoderConfig,
+    config: EncoderConfig,
     rate_control: RateControlConfig,
 }
 
@@ -46,22 +46,22 @@ impl Av1Encoder {
         }
         let mut encoder = EncoderConfig::default();
         encoder.chroma_sampling = ChromaSampling::Cs444;
-        Ok(Self { output: File::create(path)?, encoder, rate_control: Default::default() })
+        Ok(Self { output: File::create(path)?, config: encoder, rate_control: Default::default() })
     }
     pub fn mut_config(&mut self) -> &mut EncoderConfig {
-        &mut self.encoder
+        &mut self.config
     }
     pub fn with_config(mut self, config: EncoderConfig) -> Self {
-        self.encoder = config;
+        self.config = config;
         self
     }
     pub fn with_size(mut self, width: usize, height: usize) -> Self {
-        self.encoder.width = width;
-        self.encoder.height = height;
+        self.config.width = width;
+        self.config.height = height;
         self
     }
     pub fn with_fps(mut self, fps: usize) -> Self {
-        self.encoder.time_base = Rational { num: 1, den: fps as u64 };
+        self.config.time_base = Rational { num: 1, den: fps as u64 };
         self
     }
     pub fn with_rate_control(mut self, rate_control: RateControlConfig) -> Self {
