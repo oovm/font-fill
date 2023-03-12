@@ -5,7 +5,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "font-fill"
+name = "font_fill"
 crate-type = ["cdylib"]
 
 [dependencies]

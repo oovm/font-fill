@@ -1,0 +1,15 @@
+[package]
+name = "font-fill-wasi"
+publish = false
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "font_fill"
+crate-type = ["cdylib"]
+
+[dependencies]
+wolfram-library-link = "0.2.9"
+
+[dependencies.font-fill]
+path = "../font-fill"
